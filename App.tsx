@@ -12,6 +12,7 @@ const copyArray = (arr: Word[]) => arr.map((row: Word) => [...row]);
 export default function App() {
   const word = "world";
   const wordLength = word.length;
+  const letters = word.split("");
   const [rows, setRows] = useState<Word[]>(
     new Array(MAX_ATTEMPTS).fill(new Array(wordLength).fill(""))
   );
@@ -52,6 +53,23 @@ export default function App() {
     return indexRow === currentRow && indexCell === currentColumn;
   };
 
+  const getCellBackgroundColor = (
+    letter: string,
+    indexRow: number,
+    indexCell: number
+  ): string => {
+    if (indexRow >= currentRow) {
+      return colors.black;
+    }
+    if (letter === letters[indexCell]) {
+      return colors.primary;
+    }
+    if (letters.includes(letter)) {
+      return colors.secondary;
+    }
+    return colors.darkgrey;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
@@ -59,7 +77,7 @@ export default function App() {
       <ScrollView style={styles.map}>
         {rows.map((row, indexRow) => (
           <View style={styles.row} key={indexRow}>
-            {row.map((cell, indexCell) => (
+            {row.map((letter, indexCell) => (
               <View
                 style={[
                   styles.cell,
@@ -68,10 +86,17 @@ export default function App() {
                       ? colors.lightgrey
                       : colors.darkgrey,
                   },
+                  {
+                    backgroundColor: getCellBackgroundColor(
+                      letter,
+                      indexRow,
+                      indexCell
+                    ),
+                  },
                 ]}
                 key={indexCell}
               >
-                <Text style={styles.cellText}>{cell}</Text>
+                <Text style={styles.cellText}>{letter}</Text>
               </View>
             ))}
           </View>
