@@ -1,48 +1,83 @@
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
-import { colors } from "./src/constants";
+import { CLEAR, colors, ENTER } from "./src/constants";
 import Keyboard from "./src/components/Keyboard";
+import { useState } from "react";
 
 const MAX_ATTEMPTS = 6;
 type Word = string[];
 
+const copyArray = (arr: Word[]) => arr.map((row: Word) => [...row]);
+
 export default function App() {
   const word = "world";
-  const letters = word.split("");
-  // const rows = [
-  //   ["a", "p", "p", "l", "e"],
-  //   ["", "", "", "", ""],
-  //   ["", "", "", "", ""],
-  //   ["", "", "", "", ""],
-  //   ["", "", "", "", ""],
-  //   ["", "", "", "", ""],
-  // ];
-  const rows: Word[] = new Array(MAX_ATTEMPTS).fill(
-    new Array(word.length).fill("a")
+  const wordLength = word.length;
+  const [rows, setRows] = useState<Word[]>(
+    new Array(MAX_ATTEMPTS).fill(new Array(wordLength).fill(""))
   );
+  const [currentRow, setCurrentRow] = useState<number>(0);
+  const [currentColumn, setCurrentColumn] = useState<number>(0);
+
+  const onKeyPressed = (key: string) => {
+    const updatedRow = copyArray(rows);
+    if (key === CLEAR) {
+      if (currentColumn > 0) {
+        const prevColumn = currentColumn - 1;
+        updatedRow[currentRow][prevColumn] = "";
+
+        setRows(updatedRow);
+        setCurrentColumn(prevColumn);
+      }
+
+      return;
+    }
+
+    if (key === ENTER) {
+      if (currentColumn === rows[currentRow].length) {
+        setCurrentRow(currentRow + 1);
+        setCurrentColumn(0);
+      }
+
+      return;
+    }
+
+    if (currentColumn < rows[currentRow].length) {
+      updatedRow[currentRow][currentColumn] = key;
+      setRows(updatedRow);
+      setCurrentColumn(currentColumn + 1);
+    }
+  };
+
+  const isCellActive = (indexCell: number, indexRow: number): boolean => {
+    return indexRow === currentRow && indexCell === currentColumn;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       <Text style={styles.title}>WORDLE</Text>
-      {rows.map((row, indexRow) => {
-        console.log("indexRow", indexRow, row);
-        return (
-          <View style={styles.map} key={indexRow}>
-            <View style={styles.row}>
-              {row.map((cell, indexCell) => (
-                <View
-                  style={styles.cell}
-                  key={`${cell}-${indexRow}${indexCell}`}
-                >
-                  <Text style={styles.cellText}>{cell}</Text>
-                </View>
-              ))}
-            </View>
+      <ScrollView style={styles.map}>
+        {rows.map((row, indexRow) => (
+          <View style={styles.row} key={indexRow}>
+            {row.map((cell, indexCell) => (
+              <View
+                style={[
+                  styles.cell,
+                  {
+                    borderColor: isCellActive(indexCell, indexRow)
+                      ? colors.lightgrey
+                      : colors.darkgrey,
+                  },
+                ]}
+                key={indexCell}
+              >
+                <Text style={styles.cellText}>{cell}</Text>
+              </View>
+            ))}
           </View>
-        );
-      })}
-      <Keyboard />
+        ))}
+      </ScrollView>
+      <Keyboard onKeyPressed={onKeyPressed} />
     </SafeAreaView>
   );
 }
@@ -55,21 +90,23 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.lightgrey,
-    fontWeight: "bold",
     fontSize: 32,
-    letterSpacing: 6,
+    fontWeight: "bold",
+    letterSpacing: 7,
   },
   map: {
     alignSelf: "stretch",
+    marginTop: 20,
+    height: 100,
   },
   row: {
-    flexDirection: "row",
     alignSelf: "stretch",
+    flexDirection: "row",
     justifyContent: "center",
   },
   cell: {
-    borderColor: colors.darkgrey,
     borderWidth: 3,
+    borderColor: colors.darkgrey,
     flex: 1,
     maxWidth: 70,
     aspectRatio: 1,
@@ -78,9 +115,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cellText: {
-    textTransform: "uppercase",
     color: colors.lightgrey,
     fontSize: 28,
     fontWeight: "bold",
+    textTransform: "uppercase",
   },
 });
