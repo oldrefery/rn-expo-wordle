@@ -5,7 +5,7 @@ import Keyboard from "./src/components/Keyboard";
 import { useState } from "react";
 
 const MAX_ATTEMPTS = 6;
-type Word = string[];
+export type Word = string[];
 
 const copyArray = (arr: Word[]) => arr.map((row: Word) => [...row]);
 
@@ -54,14 +54,14 @@ export default function App() {
   };
 
   const getCellBackgroundColor = (
-    letter: string,
     indexRow: number,
     indexCell: number
   ): string => {
+    const letter = rows[indexRow][indexCell];
     if (indexRow >= currentRow) {
       return colors.black;
     }
-    if (letter === letters[indexCell]) {
+    if (isRightPlace(letter, indexCell)) {
       return colors.primary;
     }
     if (letters.includes(letter)) {
@@ -69,6 +69,23 @@ export default function App() {
     }
     return colors.darkgrey;
   };
+
+  const isRightPlace = (letter: string, indexCell: number) => {
+    return letter === letters[indexCell];
+  };
+
+  const lettersWithColor = (color: string) => {
+    return rows.flatMap((row: Word[], indexRow: number) =>
+      row.filter(
+        (cell, indexCell) =>
+          getCellBackgroundColor(indexRow, indexCell) === color
+      )
+    );
+  };
+  const greenCaps = lettersWithColor(colors.primary);
+
+  const yellowCaps = lettersWithColor(colors.secondary);
+  const greyCaps: Word[] = lettersWithColor(colors.darkgrey);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -88,7 +105,6 @@ export default function App() {
                   },
                   {
                     backgroundColor: getCellBackgroundColor(
-                      letter,
                       indexRow,
                       indexCell
                     ),
@@ -102,7 +118,12 @@ export default function App() {
           </View>
         ))}
       </ScrollView>
-      <Keyboard onKeyPressed={onKeyPressed} />
+      <Keyboard
+        onKeyPressed={onKeyPressed}
+        greenCaps={greenCaps}
+        yellowCaps={yellowCaps}
+        greyCaps={greyCaps}
+      />
     </SafeAreaView>
   );
 }

@@ -1,12 +1,13 @@
 import { View, Text, Pressable } from "react-native";
 import { keys, ENTER, CLEAR, colors } from "../../constants";
 import styles, { keyWidth } from "./Keyboard.styles";
+import { Word } from "../../../App";
 
 interface KeyboardProps {
   onKeyPressed?: (e: string) => void;
-  greenCaps?: string[];
-  yellowCaps?: string[];
-  greyCaps?: string[];
+  greenCaps?: Word[];
+  yellowCaps?: Word[];
+  greyCaps?: Word[];
 }
 
 const Keyboard = ({
