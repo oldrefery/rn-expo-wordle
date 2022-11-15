@@ -1,13 +1,25 @@
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { CLEAR, colors, ENTER } from "./src/constants";
 import Keyboard from "./src/components/Keyboard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const MAX_ATTEMPTS = 6;
 export type Word = string[];
 
 const copyArray = (arr: Word[]) => arr.map((row: Word) => [...row]);
+const enum GameStatus {
+  PLAYING = "playing",
+  WON = "won",
+  LOST = "lost",
+}
 
 export default function App() {
   const word = "world";
@@ -18,9 +30,48 @@ export default function App() {
   );
   const [currentRow, setCurrentRow] = useState<number>(0);
   const [currentColumn, setCurrentColumn] = useState<number>(0);
+  const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.PLAYING);
+
+  useEffect(() => {
+    if (currentRow > 0) {
+      checkGameState();
+    }
+  }, [currentRow]);
+
+  const checkGameState = () => {
+    if (checkIfWon()) {
+      setGameStatus(GameStatus.WON);
+      Alert.alert("Hooray!", "You won!", [
+        { text: "Share", onPress: shareScore },
+      ]);
+    } else if (checkIfLost()) {
+      setGameStatus(GameStatus.LOST);
+      Alert.alert("Meh...", "Try again tomorrow");
+    }
+  };
+
+  const shareScore = () => {
+    // const textToShare = rows.map((row, indexRow) =>
+    //   row.map((cell, indexColumn) =>
+    //     getCellBackgroundColor(indexRow, indexColumn)
+    //   )
+    // );
+  };
+  const checkIfWon = (): boolean => {
+    const lastTypedWord = rows[currentRow - 1].join("");
+    return lastTypedWord === word;
+  };
+  const checkIfLost = (): boolean => {
+    return currentRow === MAX_ATTEMPTS;
+  };
 
   const onKeyPressed = (key: string) => {
+    if (gameStatus != GameStatus.PLAYING) {
+      return;
+    }
+
     const updatedRow = copyArray(rows);
+
     if (key === CLEAR) {
       if (currentColumn > 0) {
         const prevColumn = currentColumn - 1;
@@ -75,6 +126,7 @@ export default function App() {
   };
 
   const lettersWithColor = (color: string) => {
+    // @ts-ignore
     return rows.flatMap((row: Word[], indexRow: number) =>
       row.filter(
         (cell, indexCell) =>
@@ -143,7 +195,6 @@ const styles = StyleSheet.create({
   map: {
     alignSelf: "stretch",
     marginTop: 20,
-    height: 100,
   },
   row: {
     alignSelf: "stretch",
