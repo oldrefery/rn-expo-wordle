@@ -7,9 +7,11 @@ import {
   Text,
   View,
 } from "react-native";
-import { CLEAR, colors, ENTER } from "./src/constants";
+import { CLEAR, colors, colorsToEmoji, ENTER } from "./src/constants";
 import Keyboard from "./src/components/Keyboard";
 import { useEffect, useState } from "react";
+import * as Clipboard from "expo-clipboard";
+import { faker } from "@faker-js/faker/locale/en";
 
 const MAX_ATTEMPTS = 6;
 export type Word = string[];
@@ -20,9 +22,9 @@ const enum GameStatus {
   WON = "won",
   LOST = "lost",
 }
+const word = faker.random.word();
 
 export default function App() {
-  const word = "world";
   const wordLength = word.length;
   const letters = word.split("");
   const [rows, setRows] = useState<Word[]>(
@@ -51,11 +53,20 @@ export default function App() {
   };
 
   const shareScore = () => {
-    // const textToShare = rows.map((row, indexRow) =>
-    //   row.map((cell, indexColumn) =>
-    //     getCellBackgroundColor(indexRow, indexColumn)
-    //   )
-    // );
+    const textMap = rows
+      .map((row, indexRow) =>
+        row
+          .map(
+            (cell, indexColumn) =>
+              colorsToEmoji[getCellBackgroundColor(indexRow, indexColumn)]
+          )
+          .join("")
+      )
+      .filter((row) => row)
+      .join("\n");
+    const textToShare = `Wordle result \n${textMap}`;
+
+    Clipboard.setStringAsync(textToShare);
   };
   const checkIfWon = (): boolean => {
     const lastTypedWord = rows[currentRow - 1].join("");

@@ -9,6 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@faker-js/faker": "^7.6.0",
     "expo": "~46.0.16",
     "expo-clipboard": "~3.1.0",
     "expo-status-bar": "~1.4.0",
